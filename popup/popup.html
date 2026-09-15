@@ -48,6 +48,27 @@
     </div>
   </section>
 
+  <section id="proWrap" class="pro-wrap">
+    <div id="proLocked" class="pro-box">
+      <div class="pro-head"><span class="pro-lock">🔒</span> <b>Pro 版</b><span class="pro-tag">免费版功能受限</span></div>
+      <div class="pro-benefits">无限关键词 · 最多 3 页扫描 · 全部导出功能</div>
+      <div class="pro-price-row">
+        <div class="pro-price" id="proPrice"></div>
+        <a id="proBuy" class="pro-buy-btn" target="_blank" rel="noreferrer">购买激活码</a>
+      </div>
+      <div class="pro-activate">
+        <input id="proKey" placeholder="粘贴激活码（ARTK-… 或 Lemon Squeezy 码）" autocomplete="off" />
+        <button id="proActivate">激活</button>
+      </div>
+      <div id="proMsg" class="pro-msg"></div>
+    </div>
+    <div id="proUnlocked" class="pro-box pro-unlocked hidden">
+      <div class="pro-head"><span class="pro-lock">✅</span> <b>Pro 已激活</b></div>
+      <div class="pro-benefits" id="proInfo"></div>
+      <div class="pro-activate"><button id="proDeactivate" class="pro-deactivate">解除绑定</button></div>
+    </div>
+  </section>
+
   <section id="progressWrap" class="progress-wrap hidden">
     <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
     <div id="progressText" class="progress-text"></div>

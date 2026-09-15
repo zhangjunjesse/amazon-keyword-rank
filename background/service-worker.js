@@ -20,6 +20,120 @@ const STATE_KEY = 'jobState';
 const AMAZON_HOST_RE =
   /(^|\.)amazon\.(com|co\.uk|de|fr|it|es|co\.jp|ca|com\.mx|com\.au|in|com\.br|nl|se|pl|com\.tr|sg|ae|sa|eg|co\.th)(\.|$)/i;
 
+// ---------------- Pro 激活（免费/付费分层） ----------------
+
+const LS_API = 'https://api.lemonsqueezy.com/v1/licenses';
+// 自有激活码公钥（Ed25519 raw key, base64url）—— 由 tools/keygen.mjs gen-keypair 生成。
+// 重新生成密钥对后，必须同步更新这里，否则旧卡密全部失效。
+const PRO_PUBLIC_KEY = '2E69IAsrGBuk2WIkcPU8Dg1aorn87QBhCuLr-mJC8ms';
+const OWN_KEY_RE = /^ARTK-([A-Za-z0-9_-]{12})-([A-Za-z0-9_-]{86})$/;
+const PRODUCT_PRO = 0x01;
+
+// 免费版限制（Pro 解除）
+const FREE_LIMITS = { keywords: 3, asins: 10, pages: 1 };
+
+function b64urlToBytes(s) {
+  let b = s.replace(/-/g, '+').replace(/_/g, '/');
+  while (b.length % 4) b += '=';
+  const bin = atob(b);
+  const u = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  return u;
+}
+
+async function sha256Short(s) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(buf)).map((x) => x.toString(16).padStart(2, '0')).join('').slice(0, 8);
+}
+
+async function getProState() {
+  try {
+    const r = await chrome.storage.local.get('proActivation');
+    return r.proActivation
+      ? { pro: true, activation: r.proActivation }
+      : { pro: false, activation: null };
+  } catch (e) {
+    return { pro: false, activation: null };
+  }
+}
+
+/** 自有签名码：本地 Ed25519 验签，离线可用 */
+async function verifyOwnKey(code) {
+  try {
+    const m = OWN_KEY_RE.exec(code);
+    if (!m) return { ok: false, error: '激活码格式不正确（应为 ARTK-…）' };
+    const key = await crypto.subtle.importKey(
+      'raw',
+      b64urlToBytes(PRO_PUBLIC_KEY),
+      { name: 'Ed25519' },
+      false,
+      ['verify']
+    );
+    const payload = b64urlToBytes(m[1]);
+    const sig = b64urlToBytes(m[2]);
+    const ok = await crypto.subtle.verify({ name: 'Ed25519' }, key, sig, payload);
+    if (!ok) return { ok: false, error: '激活码签名无效' };
+    if (payload[0] !== PRODUCT_PRO) return { ok: false, error: '激活码与产品不匹配' };
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: '校验失败：' + ((e && e.message) || e) };
+  }
+}
+
+async function getInstanceId() {
+  const r = await chrome.storage.local.get('instanceId');
+  if (r.instanceId) return r.instanceId;
+  const id = 'art-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
+  await chrome.storage.local.set({ instanceId: id });
+  return id;
+}
+
+/** Lemon Squeezy 激活码：在线激活（一次性授权） */
+async function activateLSKey(key) {
+  try {
+    const instance = await getInstanceId();
+    const res = await fetch(LS_API + '/activate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ license_key: key, instance_name: instance }),
+    });
+    const j = await res.json();
+    if (j && j.activated) {
+      return { ok: true, instanceId: j.instance && j.instance.id };
+    }
+    return { ok: false, error: (j && j.error) || ('HTTP ' + res.status) };
+  } catch (e) {
+    return { ok: false, error: '网络错误：' + ((e && e.message) || e) };
+  }
+}
+
+/** 统一激活入口：先识别自有码，再尝试 LS */
+async function activateKey(key) {
+  const k = String(key || '').trim();
+  if (!k) return { ok: false, error: '请输入激活码' };
+
+  if (/^ARTK-/i.test(k)) {
+    const v = await verifyOwnKey(k);
+    if (!v.ok) return v;
+    await chrome.storage.local.set({
+      proActivation: { source: 'own', keyHash: await sha256Short(k), activatedAt: Date.now() },
+    });
+    return { ok: true, source: 'own', msg: 'Pro 已激活（国内卡密）' };
+  }
+
+  const ls = await activateLSKey(k);
+  if (!ls.ok) return { ok: false, error: ls.error || '激活失败，请检查激活码' };
+  await chrome.storage.local.set({
+    proActivation: {
+      source: 'ls',
+      keyHash: await sha256Short(k),
+      instanceId: ls.instanceId,
+      activatedAt: Date.now(),
+    },
+  });
+  return { ok: true, source: 'ls', msg: 'Pro 已激活（Lemon Squeezy）' };
+}
+
 let job = null;          // 当前任务（内存态）
 let lastResult = null;   // 最近一次完成/取消的任务快照（供 popup 重开恢复）
 let pending = new Map(); // tabId -> { finish, timer }
@@ -336,6 +450,20 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       sendResponse({ ok: true });
       return;
     }
+    case 'activateKey': {
+      activateKey(msg.key)
+        .then((res) => sendResponse(res))
+        .catch((e) => sendResponse({ ok: false, error: String((e && e.message) || e) }));
+      return true; // 异步响应
+    }
+    case 'getProState': {
+      getProState().then((s) => sendResponse(s));
+      return true; // 异步响应
+    }
+    case 'deactivatePro': {
+      chrome.storage.local.remove('proActivation').then(() => sendResponse({ ok: true }));
+      return true; // 异步响应
+    }
     case 'getJobState': {
       if (job) {
         sendResponse({ state: snapshot(), last: lastResult });
@@ -385,6 +513,28 @@ async function handleStart(msg) {
   if (!asins.length) return { ok: false, error: '没有有效 ASIN（需为 10 位字母数字，每行一个）' };
   if (runningPromise) return { ok: false, error: '已有任务在运行，请先停止或等待完成' };
 
+  // 免费/Pro 分层：免费版限制关键词数、ASIN 数、页数
+  const proState = await getProState();
+  const isPro = proState.pro;
+  let finalKeywords = keywords;
+  let finalAsins = asins;
+  let effectivePages = clampInt(msg.pages, 1, 5, 1);
+  const truncated = {};
+  if (!isPro) {
+    if (keywords.length > FREE_LIMITS.keywords) {
+      finalKeywords = keywords.slice(0, FREE_LIMITS.keywords);
+      truncated.keywords = keywords.length;
+    }
+    if (asins.length > FREE_LIMITS.asins) {
+      finalAsins = asins.slice(0, FREE_LIMITS.asins);
+      truncated.asins = asins.length;
+    }
+    if (effectivePages > 1) {
+      effectivePages = FREE_LIMITS.pages;
+      truncated.pages = true;
+    }
+  }
+
   // 从当前活动标签页推断市场站点
   let tab, u;
   try {
@@ -402,18 +552,23 @@ async function handleStart(msg) {
     id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
     status: 'idle',
     baseUrl: u.origin,
-    keywords,
-    asins,
-    pages: clampInt(msg.pages, 1, 5, 1),
+    keywords: finalKeywords,
+    asins: finalAsins,
+    pages: effectivePages,
     delayMs: clampInt(msg.delayMs, 0, 30, 2) * 1000,
     results: {},
     errors: {},
-    progress: { done: 0, total: keywords.length, currentKeyword: null, currentKeywordIndex: 0, currentPage: 0 },
+    progress: { done: 0, total: finalKeywords.length, currentKeyword: null, currentKeywordIndex: 0, currentPage: 0 },
     finishedAt: null,
   };
   await persist();
   runJob(); // 不 await，后台跑
-  return { ok: true };
+  return {
+    ok: true,
+    pro: isPro,
+    truncated: Object.keys(truncated).length ? truncated : null,
+    limits: FREE_LIMITS,
+  };
 }
 
 function cleanList(arr) {

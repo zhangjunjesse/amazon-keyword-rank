@@ -7,6 +7,23 @@
 'use strict';
 
 (() => {
+  // ---------- 付费配置（建好商品后把链接填到 url） ----------
+  // zh：国内渠道（推荐面包多 mianbaoduo.com，卡密自动发货，微信/支付宝收款）
+  // intl：国际渠道（Lemon Squeezy，付款后自动发激活码）
+  const PAYMENT = {
+    zh: {
+      price: '¥49（一次性）',
+      note: '国内用户 · 微信/支付宝付款，自动发码',
+      url: 'https://mianbaoduo.com/ （建好商品后替换此链接）',
+    },
+    intl: {
+      price: '$19.9（一次性）',
+      note: '国际用户 · 信用卡付款，自动发码',
+      url: 'https://lemonsqueezy.com/ （建好商品后替换此链接）',
+    },
+  };
+  const isZh = /^zh/i.test((navigator.language || '').replace('_', '-'));
+
   // ---------- DOM ----------
   const $ = (id) => document.getElementById(id);
   const el = {
@@ -28,6 +45,15 @@
     exportXlsx: $('exportXlsx'),
     exportCsv: $('exportCsv'),
     footerInfo: $('footerInfo'),
+    proLocked: $('proLocked'),
+    proUnlocked: $('proUnlocked'),
+    proPrice: $('proPrice'),
+    proBuy: $('proBuy'),
+    proKey: $('proKey'),
+    proActivate: $('proActivate'),
+    proDeactivate: $('proDeactivate'),
+    proMsg: $('proMsg'),
+    proInfo: $('proInfo'),
   };
 
   // ---------- 状态 ----------
@@ -36,6 +62,7 @@
   let currentKeyword = '';
   let doneCount = 0;
   let totalCount = 0;
+  let isPro = false;
 
   // ---------- 工具 ----------
   function setStatus(text, cls) {
@@ -72,6 +99,12 @@
       }
     } catch (e) { /* ignore */ }
 
+    // Pro 状态
+    try {
+      const ps = await chrome.runtime.sendMessage({ type: 'getProState' });
+      renderProPanel(ps && ps.pro);
+    } catch (e) { /* ignore */ }
+
     // 恢复上次任务状态 / 结果
     try {
       const res = await chrome.runtime.sendMessage({ type: 'getJobState' });
@@ -91,6 +124,53 @@
         renderResults(res.last);
       }
     } catch (e) { /* 首次打开无任务 */ }
+  }
+
+  // ---------- Pro 面板 ----------
+  function renderProPanel(pro) {
+    isPro = !!pro;
+    el.proLocked.classList.toggle('hidden', isPro);
+    el.proUnlocked.classList.toggle('hidden', !isPro);
+    if (isPro) {
+      el.proInfo.textContent = '已解锁全部功能（无限关键词 / 多页扫描 / 导出）。';
+    } else {
+      const pay = isZh ? PAYMENT.zh : PAYMENT.intl;
+      el.proPrice.textContent = pay.price + ' · ' + pay.note;
+      el.proBuy.href = pay.url;
+      el.proBuy.title = pay.url;
+    }
+    el.proMsg.textContent = '';
+    el.proMsg.className = 'pro-msg';
+  }
+
+  el.proActivate.addEventListener('click', async () => {
+    const key = el.proKey.value.trim();
+    if (!key) { showProMsg('请输入激活码', false); return; }
+    el.proActivate.disabled = true;
+    showProMsg('正在校验…', null);
+    try {
+      const res = await chrome.runtime.sendMessage({ type: 'activateKey', key });
+      if (res && res.ok) {
+        showProMsg(res.msg || 'Pro 已激活', true);
+        renderProPanel(true);
+      } else {
+        showProMsg((res && res.error) || '激活失败', false);
+      }
+    } catch (e) {
+      showProMsg('激活失败：' + (e.message || e), false);
+    }
+    el.proActivate.disabled = false;
+  });
+
+  el.proDeactivate.addEventListener('click', async () => {
+    try { await chrome.runtime.sendMessage({ type: 'deactivatePro' }); } catch (e) { /* ignore */ }
+    renderProPanel(false);
+    showProMsg('已解除绑定', null);
+  });
+
+  function showProMsg(text, ok) {
+    el.proMsg.textContent = text || '';
+    el.proMsg.className = 'pro-msg' + (ok === true ? ' ok' : ok === false ? ' err' : '');
   }
 
   function restoreRunning(state) {
@@ -137,6 +217,16 @@
         setStatus(res.error || '启动失败', 'error');
         el.progressWrap.classList.add('hidden');
         return;
+      }
+      if (res.pro !== undefined) isPro = res.pro;
+      // 免费版被裁剪时提示
+      if (!isPro && res.truncated) {
+        const t = res.truncated;
+        const parts = [];
+        if (t.keywords) parts.push(`关键词 ${t.keywords} → 3`);
+        if (t.asins) parts.push(`ASIN ${t.asins} → 10`);
+        if (t.pages) parts.push('页数 → 第 1 页');
+        setStatus(`免费版已裁剪（${parts.join('，')}），解锁 Pro 可解除限制`, 'error');
       }
       setRunning(true);
       setStatus(`查询中 0/${totalCount}`, 'running');

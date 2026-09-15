@@ -94,6 +94,49 @@ textarea:focus { outline: 2px solid #ffd899; border-color: var(--primary); }
 }
 
 .actions { display: flex; gap: 10px; }
+
+/* ---- Pro 面板 ---- */
+.pro-wrap { padding-top: 0; }
+.pro-box {
+  background: #fff;
+  border: 1px solid #ffe0b0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  box-shadow: 0 1px 4px rgba(255, 153, 0, .08);
+}
+.pro-head { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+.pro-lock { font-size: 14px; }
+.pro-tag {
+  font-size: 10px; color: #e68a00; background: #fff4e5;
+  border: 1px solid #ffe0b0; padding: 0 6px; border-radius: 8px; margin-left: auto;
+}
+.pro-benefits { font-size: 12px; color: #8a919e; margin: 5px 0 8px; }
+.pro-price-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.pro-price { font-size: 15px; font-weight: 700; color: #d97706; }
+.pro-buy-btn {
+  display: inline-block; padding: 5px 14px; border-radius: 6px;
+  background: linear-gradient(135deg, #ff9900, #ff7a00); color: #fff;
+  font-size: 12px; font-weight: 600; text-decoration: none;
+}
+.pro-buy-btn:hover { filter: brightness(1.05); }
+.pro-activate { display: flex; gap: 8px; }
+.pro-activate input {
+  flex: 1; padding: 6px 9px; border: 1px solid #e2e5ea; border-radius: 6px;
+  font: 11px/1.4 Consolas, monospace;
+}
+.pro-msg { font-size: 11px; margin-top: 5px; min-height: 14px; }
+.pro-msg.ok { color: var(--ok); }
+.pro-msg.err { color: var(--danger); }
+.pro-unlocked { border-color: #bfe3cd; box-shadow: 0 1px 4px rgba(26, 156, 91, .08); }
+.pro-deactivate {
+  font-size: 11px; color: #8a919e; background: none; border: 1px solid #e2e5ea;
+  padding: 3px 10px;
+}
+.pro-deactivate:hover { color: var(--danger); border-color: var(--danger); }
+.limit-banner {
+  background: #fff8ec; border: 1px solid #ffdba8; color: #b45309;
+  font-size: 11px; border-radius: 6px; padding: 5px 8px; margin-top: 6px;
+}
 button {
   padding: 7px 16px;
   border: 1px solid var(--border);

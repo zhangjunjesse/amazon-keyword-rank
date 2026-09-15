@@ -1,5 +1,6 @@
 {
   "manifest_version": 3,
+  "minimum_chrome_version": "113",
   "name": "Amazon 关键词排名查询器",
   "version": "1.0.0",
   "description": "批量输入关键词与 ASIN，自动打开亚马逊搜索页，查询每个 ASIN 在各关键词搜索结果中的排名（含广告位标记），并可一键导出 Excel。",
@@ -25,7 +26,8 @@
     "*://*.amazon.ae/*",
     "*://*.amazon.sa/*",
     "*://*.amazon.eg/*",
-    "*://*.amazon.co.th/*"
+    "*://*.amazon.co.th/*",
+    "https://api.lemonsqueezy.com/*"
   ],
   "background": {
     "service_worker": "background/service-worker.js"

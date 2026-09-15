@@ -47,12 +47,21 @@
   </div>
 
   <div class="card">
-    <h2>四、如何卸载并清除数据？</h2>
-    <p>在 <code>chrome://extensions</code> 中移除本扩展即完全卸载；本地存储的任务状态会随扩展移除一并清除。排名结果若已导出为 Excel/CSV 文件，由您自行保管或删除。</p>
+    <h2>四、Pro 激活码校验</h2>
+    <p>解锁 Pro 版时，扩展会对您输入的激活码做校验，分两种情况：</p>
+    <ul>
+      <li><strong>ARTK- 开头的卡密（国内渠道）</strong>：仅在您的设备本地验签，<strong>不发送任何网络请求</strong>。</li>
+      <li><strong>Lemon Squeezy 激活码（国际渠道）</strong>：激活时向 <code>api.lemonsqueezy.com</code> 发送「激活码 + 随机设备标识」用于授权校验（这是支付平台的标准流程）。<strong>不会发送任何关键词、ASIN 或查询结果数据。</strong></li>
+    </ul>
   </div>
 
   <div class="card">
-    <h2>五、联系与变更</h2>
+    <h2>五、如何卸载并清除数据？</h2>
+    <p>在 <code>chrome://extensions</code> 中移除本扩展即完全卸载；本地存储的任务状态与激活状态会随扩展移除一并清除。排名结果若已导出为 Excel/CSV 文件，由您自行保管或删除。</p>
+  </div>
+
+  <div class="card">
+    <h2>六、联系与变更</h2>
     <p>本政策如有更新将在本页面公布。使用本扩展即表示您同意本政策。</p>
   </div>
 
@@ -63,6 +72,7 @@
     <p>The extension has no server, no remote code, and loads no external scripts or analytics.</p>
     <p><strong>What it accesses:</strong> When you click "Start", it opens Amazon search result pages in background tabs and reads the visible product information (ASIN, title, price, link, ad placement) from those pages to compute ranks — always initiated by you, only for the keywords you specify. It also reads the URL of your active tab to detect which Amazon marketplace you are on.</p>
     <p><strong>No data leaves your device.</strong> Queries run in your own browser session using your own login and cookies; the extension never touches your account credentials. Nothing is shared or sold. Removing the extension from chrome://extensions deletes all local state.</p>
+    <p><strong>Pro license activation:</strong> For <code>ARTK-</code> keys (domestic channel) validation happens entirely on-device with no network request. For Lemon Squeezy keys (international channel), the activation call sends the license key plus a random instance identifier to api.lemonsqueezy.com — the standard flow of the payment platform. Keywords, ASINs and rank data are never transmitted.</p>
     <p>Questions or policy changes will be published on this page. By using this extension you agree to this policy.</p>
   </div>
 </div>
