@@ -136,8 +136,16 @@
     } else {
       const pay = isZh ? PAYMENT.zh : PAYMENT.intl;
       el.proPrice.textContent = pay.price + ' · ' + pay.note;
-      el.proBuy.href = pay.url;
-      el.proBuy.title = pay.url;
+      // 链接还是占位符（含"替换此链接"标记）时禁用购买按钮，避免跳到无效地址
+      if (pay.url.includes('替换此链接')) {
+        el.proBuy.classList.add('pro-buy-disabled');
+        el.proBuy.href = '#';
+        el.proBuy.title = '该渠道正在配置中，请稍后';
+      } else {
+        el.proBuy.classList.remove('pro-buy-disabled');
+        el.proBuy.href = pay.url;
+        el.proBuy.title = pay.url;
+      }
     }
     el.proMsg.textContent = '';
     el.proMsg.className = 'pro-msg';
