@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Excel Export Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font: 13px/1.4 "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+    background: #f3f2f1; color: #1f2329; height: 100vh;
+    display: flex; flex-direction: column;
+  }
+  /* 模拟 Excel 窗口标题栏 */
+  .win-title {
+    background: #217346; color: #fff; padding: 8px 16px;
+    font-size: 12px; display: flex; gap: 14px; align-items: center;
+  }
+  .win-title .file { font-weight: 600; }
+  .ribbon { background: #fff; border-bottom: 1px solid #e1e1e1; padding: 8px 16px; display: flex; gap: 18px; font-size: 12px; color: #444; }
+  .ribbon b { color: #217346; }
+  .sheet-area { flex: 1; padding: 18px; }
+  .sheet-card {
+    background: #fff; border: 1px solid #d0d0d0; border-radius: 4px;
+    box-shadow: 0 6px 24px rgba(0,0,0,.12); overflow: auto; max-width: 980px;
+  }
+  table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+  th, td {
+    border-right: 1px solid #e8e8e8; border-bottom: 1px solid #e8e8e8;
+    padding: 6px 12px; white-space: nowrap; text-align: center;
+  }
+  th { background: #f0f6f2; color: #217346; font-weight: 600; }
+  td:first-child, th:first-child { text-align: left; }
+  .kw-head { background: #eaf3ee; color: #1d5c3a; font-weight: 600; }
+  .green { color: #1a9c5b; font-weight: 700; }
+  .orange { color: #b45309; font-weight: 700; }
+  .gray { color: #c0c6cf; }
+  .sheet-tab {
+    background: #fff; display: inline-block; padding: 5px 18px; margin-top: 10px;
+    border: 1px solid #d0d0d0; border-radius: 4px 4px 0 0; border-bottom: none;
+    color: #217346; font-weight: 600; font-size: 12px;
+  }
+  .status-msg { margin-top: 14px; font-size: 12px; color: #555; }
+  .status-msg b { color: #217346; }
+</style>
+</head>
+<body>
+  <div class="win-title">
+    <span>📗</span><span class="file">amazon-rank-20260915-1530.xlsx — Excel</span>
+    <span style="margin-left:auto">排名汇总</span>
+  </div>
+  <div class="ribbon">
+    <span><b>文件</b></span><span>开始</span><span>插入</span><span>页面布局</span><span>公式</span><span>数据</span><span>审阅</span><span>视图</span>
+  </div>
+  <div class="sheet-area">
+    <div class="sheet-tab">排名汇总</div>
+    <div class="sheet-card">
+      <table>
+        <thead>
+          <tr>
+            <th>ASIN</th>
+            <th class="kw-head">wireless earbuds</th>
+            <th class="kw-head">bluetooth headphones</th>
+            <th class="kw-head">noise cancelling earbuds</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>B0C3D2E1F0</b></td>
+            <td class="green">2</td>
+            <td class="green">5</td>
+            <td class="green">3</td>
+          </tr>
+          <tr>
+            <td><b>B0A1B2C3D4</b></td>
+            <td class="orange">2</td>
+            <td class="green">1</td>
+            <td class="gray">—</td>
+          </tr>
+          <tr>
+            <td><b>B09XYZ12AB</b></td>
+            <td class="green">12</td>
+            <td class="orange">4</td>
+            <td class="green">8</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="status-msg">
+      ✔ 工作表：<b>排名汇总</b>（ASIN × 关键词） · 完整明细 · 未找到清单 —— 一键导出，可直接用于报表与团队分享
+    </div>
+  </div>
+</body>
+</html>

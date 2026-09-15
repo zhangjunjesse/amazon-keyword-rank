@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Amazon Keyword Rank Tracker — Demo Preview</title>
+<style>
+  /* ===== 模拟亚马逊搜索页背景 ===== */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font: 14px/1.5 -apple-system, "Segoe UI", "Microsoft YaHei", Arial, sans-serif;
+    background: #ffffff;
+    color: #111;
+    min-height: 100vh;
+  }
+  .mock-nav {
+    background: #131921;
+    padding: 8px 24px;
+    display: flex; align-items: center; gap: 18px;
+  }
+  .mock-logo { color: #fff; font-weight: 800; font-size: 22px; letter-spacing: -1px; }
+  .mock-logo span { color: #ff9900; }
+  .mock-search {
+    flex: 1; max-width: 720px; display: flex;
+    background: #fff; border-radius: 6px; overflow: hidden;
+  }
+  .mock-search input {
+    flex: 1; border: none; padding: 8px 12px; font-size: 13px; outline: none;
+  }
+  .mock-search .btn { background: #febd69; padding: 8px 18px; font-weight: 700; font-size: 13px; color: #111; }
+  .mock-sub {
+    background: #232f3e; padding: 6px 24px; display: flex; gap: 16px;
+  }
+  .mock-sub span { color: #cfd8e3; font-size: 12px; }
+  .mock-body { padding: 18px 24px; max-width: 1200px; margin: 0 auto; }
+  .mock-filters { color: #565959; font-size: 12px; margin-bottom: 14px; }
+  .mock-result {
+    display: flex; gap: 14px; padding: 14px 0; border-bottom: 1px solid #e7e7e7;
+  }
+  .mock-thumb {
+    width: 80px; height: 80px; background: #f3f4f6; border-radius: 6px; flex-shrink: 0;
+  }
+  .mock-result .title { color: #007185; font-size: 15px; margin-bottom: 4px; }
+  .mock-result .meta { color: #565959; font-size: 12px; }
+  .mock-result .price { color: #b12704; font-weight: 700; font-size: 14px; }
+
+  /* ===== 弹窗卡片（复用 popup.css 观感） ===== */
+  .popup-card {
+    position: fixed; left: 50%; top: 64px; transform: translateX(-50%);
+    width: 620px; max-height: 640px; overflow-y: auto;
+    background: #f7f8fa; color: #1f2329;
+    border: 1px solid #e2e5ea; border-radius: 12px;
+    box-shadow: 0 18px 48px rgba(20, 30, 50, .28);
+    display: flex; flex-direction: column;
+    font-size: 13px; z-index: 10;
+  }
+  .popup-card header {
+    padding: 12px 16px; background: #fff; border-bottom: 1px solid #e2e5ea;
+    display: flex; justify-content: space-between; align-items: center;
+    border-radius: 12px 12px 0 0;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .logo {
+    width: 34px; height: 34px; border-radius: 8px;
+    background: linear-gradient(135deg, #ff9900, #ff7a00); color: #fff;
+    font-weight: 800; font-size: 20px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .popup-card h1 { font-size: 14px; font-weight: 600; }
+  .status { font-size: 12px; color: #8a919e; margin-top: 1px; }
+  .status.running { color: #e68a00; font-weight: 600; }
+  .status.done { color: #1a9c5b; font-weight: 600; }
+  .site-tag {
+    font-size: 11px; padding: 3px 8px; border-radius: 20px;
+    background: #fff4e5; color: #e68a00; border: 1px solid #ffe0b0;
+  }
+  section { padding: 10px 16px; }
+  .inputs { display: flex; flex-direction: column; gap: 8px; }
+  .field label { display: block; font-size: 12px; color: #8a919e; margin-bottom: 3px; font-weight: 600; }
+  .hint { font-weight: 400; color: #b3bac4; }
+  textarea {
+    width: 100%; resize: vertical; min-height: 60px; padding: 7px 9px;
+    border: 1px solid #e2e5ea; border-radius: 8px;
+    font: 12px/1.45 Consolas, "Courier New", monospace; background: #fff;
+  }
+  .options { display: flex; gap: 16px; align-items: flex-end; }
+  .opt { display: flex; flex-direction: column; gap: 3px; }
+  .opt label { font-size: 12px; color: #8a919e; }
+  .opt input, .opt select {
+    padding: 5px 8px; border: 1px solid #e2e5ea; border-radius: 6px; font-size: 12px; background: #fff;
+  }
+  .actions { display: flex; gap: 10px; }
+  button {
+    padding: 7px 16px; border: 1px solid #e2e5ea; border-radius: 6px;
+    background: #fff; color: #1f2329; font-size: 13px; cursor: pointer;
+  }
+  button.primary { background: #ff9900; border-color: #e68a00; color: #fff; font-weight: 600; }
+  .progress-bar {
+    height: 8px; border-radius: 6px; background: #e6e9ee; overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; width: 33%;
+    background: linear-gradient(90deg, #ffb347, #ff9900); border-radius: 6px;
+  }
+  .progress-text { font-size: 12px; color: #8a919e; margin-top: 4px; }
+  .result-toolbar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .tab {
+    padding: 4px 12px; border-radius: 6px; font-size: 12px;
+    border: 1px solid #e2e5ea; background: #fff;
+  }
+  .tab.active { background: #ff9900; border-color: #e68a00; color: #fff; font-weight: 600; }
+  .rank-mode { display: flex; gap: 10px; font-size: 12px; color: #8a919e; }
+  .export { margin-left: auto; display: flex; gap: 8px; }
+  .view { background: #fff; border: 1px solid #e2e5ea; border-radius: 8px; overflow: auto; max-height: 300px; }
+  table { border-collapse: collapse; width: 100%; font-size: 12px; }
+  th, td { padding: 5px 8px; border-bottom: 1px solid #e2e5ea; text-align: left; white-space: nowrap; }
+  th { position: sticky; top: 0; background: #f2f4f7; font-weight: 600; color: #4a5160; }
+  td.asin { font-family: Consolas, monospace; font-weight: 600; }
+  tr:hover td { background: #fffaf0; }
+  .rank-cell { text-align: center; font-weight: 600; color: #1a9c5b; }
+  .rank-cell.sponsored { color: #b45309; }
+  .rank-cell.missing { color: #c0c6cf; font-weight: 400; }
+  .badge {
+    display: inline-block; font-size: 10px; padding: 0 5px; border-radius: 8px;
+    margin-left: 4px; background: #fde8d3; color: #b45309;
+  }
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- 模拟亚马逊页面背景 -->
+<nav class="mock-nav">
+  <div class="mock-logo">amazon<span>.</span></div>
+  <div class="mock-search"><input value="wireless earbuds"><div class="btn">搜索</div></div>
+</nav>
+<div class="mock-sub"><span>全部</span><span>今日优惠</span><span>客户服务</span><span>图书</span></div>
+<div class="mock-body">
+  <div class="mock-filters">1-16 of over 2,000 results for "wireless earbuds"</div>
+  <div class="mock-result"><div class="mock-thumb"></div><div><div class="title">Wireless Earbuds Bluetooth 5.3, IPX7 Waterproof…</div><div class="meta">4.5 ★ · 12,345 ratings · $24.99</div></div></div>
+  <div class="mock-result"><div class="mock-thumb"></div><div><div class="title">Bluetooth Headphones Wireless Earbuds with Noise Cancelling…</div><div class="meta">4.3 ★ · 8,210 ratings · $29.99</div></div></div>
+  <div class="mock-result"><div class="mock-thumb"></div><div><div class="title">Wireless Earbuds with Charging Case, Deep Bass, 36H Playtime…</div><div class="meta">4.6 ★ · 21,004 ratings · $19.99</div></div></div>
+</div>
+
+<!-- 弹窗卡片 -->
+<div class="popup-card" id="card">
+  <header>
+    <div class="brand">
+      <span class="logo">A</span>
+      <div>
+        <h1>Amazon 关键词排名查询器</h1>
+        <div class="status" id="statusLine">就绪</div>
+      </div>
+    </div>
+    <span class="site-tag">www.amazon.com</span>
+  </header>
+
+  <section class="inputs">
+    <div class="field">
+      <label>关键词 <span class="hint">（每行一个）</span></label>
+      <textarea id="kw">wireless earbuds
+bluetooth headphones
+noise cancelling earbuds</textarea>
+    </div>
+    <div class="field">
+      <label>ASIN <span class="hint">（每行一个，10 位字母数字）</span></label>
+      <textarea id="as">B0C3D2E1F0
+B0A1B2C3D4
+B09XYZ12AB</textarea>
+    </div>
+    <div class="options">
+      <div class="opt"><label>扫描页数</label><select><option selected>第 1 页</option><option>前 2 页</option><option>前 3 页</option></select></div>
+      <div class="opt"><label>关键词间隔（秒）</label><input type="number" value="2" style="width:70px"></div>
+    </div>
+    <div class="actions">
+      <button class="primary" id="btnStart">开始查询</button>
+      <button id="btnStop">停止</button>
+    </div>
+  </section>
+
+  <section id="progressWrap" class="hidden">
+    <div class="progress-bar"><div class="progress-fill" id="fill"></div></div>
+    <div class="progress-text" id="progressText"></div>
+  </section>
+
+  <section id="resultWrap" class="hidden">
+    <div class="result-toolbar">
+      <div class="tabs">
+        <button class="tab active" id="tabMatrix">排名总表</button>
+        <button class="tab" id="tabDetail">明细</button>
+      </div>
+      <div class="rank-mode">
+        <label><input type="radio" name="rm" checked> 自然排名</label>
+        <label><input type="radio" name="rm"> 总排名</label>
+      </div>
+      <div class="export"><button class="primary">导出 Excel</button><button>导出 CSV</button></div>
+    </div>
+    <div class="view" id="viewMatrix"></div>
+    <div class="view hidden" id="viewDetail"></div>
+  </section>
+</div>
+
+<script>
+  // 演示数据
+  const KW = ['wireless earbuds', 'bluetooth headphones', 'noise cancelling earbuds'];
+  const ASINS = ['B0C3D2E1F0', 'B0A1B2C3D4', 'B09XYZ12AB'];
+  const RESULTS = {
+    'wireless earbuds': [
+      { asin: 'B0C3D2E1F0', globalPosition: 3, globalOrganicPosition: 2, sponsored: false, title: 'Wireless Earbuds Bluetooth 5.3, IPX7 Waterproof, 36H Playtime with Charging Case' },
+      { asin: 'B0A1B2C3D4', globalPosition: 2, globalOrganicPosition: null, sponsored: true, title: 'Bluetooth Headphones Wireless Earbuds with Noise Cancelling Mic' },
+      { asin: 'B09XYZ12AB', globalPosition: 18, globalOrganicPosition: 12, sponsored: false, title: 'Wireless Earbuds with Charging Case, Deep Bass' },
+    ],
+    'bluetooth headphones': [
+      { asin: 'B0A1B2C3D4', globalPosition: 1, globalOrganicPosition: 1, sponsored: false, title: 'Bluetooth Headphones Wireless Earbuds with Noise Cancelling Mic' },
+      { asin: 'B0C3D2E1F0', globalPosition: 7, globalOrganicPosition: 5, sponsored: false, title: 'Wireless Earbuds Bluetooth 5.3' },
+      { asin: 'B09XYZ12AB', globalPosition: 4, globalOrganicPosition: null, sponsored: true, title: 'Wireless Earbuds with Charging Case' },
+    ],
+    'noise cancelling earbuds': [
+      { asin: 'B0C3D2E1F0', globalPosition: 5, globalOrganicPosition: 3, sponsored: false, title: 'Wireless Earbuds Bluetooth 5.3' },
+      { asin: 'B09XYZ12AB', globalPosition: 12, globalOrganicPosition: 8, sponsored: false, title: 'Noise Cancelling Earbuds, Hybrid Active NC, HiFi Sound' },
+    ],
+  };
+
+  const $ = (id) => document.getElementById(id);
+
+  function esc(s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function cellFor(kw, asin) {
+    const items = RESULTS[kw] || [];
+    const it = items.find((x) => x.asin === asin);
+    if (!it) return { text: '—', cls: 'missing', badge: '' };
+    return {
+      text: String(it.globalPosition),
+      cls: it.sponsored ? 'sponsored' : '',
+      badge: it.sponsored ? '广告' : '',
+    };
+  }
+  function renderMatrix() {
+    let html = '<table><thead><tr><th>ASIN</th>' + KW.map((k) => '<th>' + esc(k) + '</th>').join('') + '</tr></thead><tbody>';
+    for (const a of ASINS) {
+      html += '<tr><td class="asin">' + esc(a) + '</td>';
+      for (const k of KW) {
+        const c = cellFor(k, a);
+        html += '<td class="rank-cell ' + c.cls + '">' + c.text + (c.badge ? '<span class="badge">' + c.badge + '</span>' : '') + '</td>';
+      }
+      html += '</tr>';
+    }
+    html += '</tbody></table>';
+    $('viewMatrix').innerHTML = html;
+  }
+  function renderDetail() {
+    let html = '<table><thead><tr><th>关键词</th><th>ASIN</th><th>总排名</th><th>自然排名</th><th>广告</th><th>标题</th></tr></thead><tbody>';
+    for (const k of KW) {
+      const items = RESULTS[k] || [];
+      const found = new Set(items.map((i) => i.asin));
+      for (const it of items) {
+        html += '<tr><td>' + esc(k) + '</td><td class="asin">' + esc(it.asin) + '</td><td class="rank-cell">' + it.globalPosition + '</td><td class="rank-cell">' + (it.globalOrganicPosition != null ? it.globalOrganicPosition : '—') + '</td><td>' + (it.sponsored ? '是' : '否') + '</td><td style="max-width:260px;overflow:hidden;text-overflow:ellipsis">' + esc(it.title) + '</td></tr>';
+      }
+      for (const a of ASINS) {
+        if (!found.has(a)) html += '<tr><td>' + esc(k) + '</td><td class="asin">' + esc(a) + '</td><td class="rank-cell missing" colspan="4">未找到（第 1 页内）</td></tr>';
+      }
+    }
+    html += '</tbody></table>';
+    $('viewDetail').innerHTML = html;
+  }
+
+  function show(state) {
+    // 重置
+    $('progressWrap').classList.add('hidden');
+    $('resultWrap').classList.add('hidden');
+    $('viewMatrix').classList.remove('hidden');
+    $('viewDetail').classList.add('hidden');
+    $('tabMatrix').classList.add('active');
+    $('tabDetail').classList.remove('active');
+    $('statusLine').className = 'status';
+
+    if (state === 'input') {
+      $('statusLine').textContent = '就绪 — 当前站点 www.amazon.com';
+    } else if (state === 'progress') {
+      $('statusLine').textContent = '查询中 1/3';
+      $('statusLine').className = 'status running';
+      $('progressWrap').classList.remove('hidden');
+      $('fill').style.width = '33%';
+      $('progressText').textContent = '第 2 个关键词：bluetooth headphones · 第 1/1 页';
+    } else if (state === 'matrix' || state === 'detail') {
+      $('statusLine').textContent = '查询完成：3/3 个关键词';
+      $('statusLine').className = 'status done';
+      $('resultWrap').classList.remove('hidden');
+      renderMatrix();
+      renderDetail();
+      if (state === 'detail') {
+        $('viewMatrix').classList.add('hidden');
+        $('viewDetail').classList.remove('hidden');
+        $('tabMatrix').classList.remove('active');
+        $('tabDetail').classList.add('active');
+      }
+    }
+  }
+
+  $('tabMatrix').addEventListener('click', () => { show('matrix'); });
+  $('tabDetail').addEventListener('click', () => { show('detail'); });
+
+  const state = (location.hash || '#input').slice(1);
+  show(['input', 'progress', 'matrix', 'detail'].includes(state) ? state : 'input');
+  document.body.setAttribute('data-state', state);
+</script>
+</body>
+</html>

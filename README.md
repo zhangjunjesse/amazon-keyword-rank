@@ -2,6 +2,10 @@
 
 批量输入**关键词**与 **ASIN**，自动在亚马逊搜索结果页查询每个 ASIN 的排名（总排名 / 自然排名，广告位自动标记），并一键**导出 Excel / CSV**。
 
+> English: [README.en.md](README.en.md) · 商店上架材料（可直接复制提交 CWS）：[store-listing.md](store-listing.md) · 隐私政策：[privacy-policy.html](privacy-policy.html) · 界面演示：[demo/preview.html](demo/preview.html)
+
+![排名总表示例](screenshots/03-matrix.png)
+
 ## 功能
 
 - 🗂 **批量查询**：一次输入任意多个关键词 × 任意多个 ASIN，自动逐个关键词打开搜索页（后台标签页，不打扰当前页面）
