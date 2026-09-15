@@ -1,0 +1,76 @@
+{
+  "manifest_version": 3,
+  "name": "Amazon 关键词排名查询器",
+  "version": "1.0.0",
+  "description": "批量输入关键词与 ASIN，自动打开亚马逊搜索页，查询每个 ASIN 在各关键词搜索结果中的排名（含广告位标记），并可一键导出 Excel。",
+  "permissions": ["tabs", "storage"],
+  "host_permissions": [
+    "*://*.amazon.com/*",
+    "*://*.amazon.co.uk/*",
+    "*://*.amazon.de/*",
+    "*://*.amazon.fr/*",
+    "*://*.amazon.it/*",
+    "*://*.amazon.es/*",
+    "*://*.amazon.co.jp/*",
+    "*://*.amazon.ca/*",
+    "*://*.amazon.com.mx/*",
+    "*://*.amazon.com.au/*",
+    "*://*.amazon.in/*",
+    "*://*.amazon.com.br/*",
+    "*://*.amazon.nl/*",
+    "*://*.amazon.se/*",
+    "*://*.amazon.pl/*",
+    "*://*.amazon.com.tr/*",
+    "*://*.amazon.sg/*",
+    "*://*.amazon.ae/*",
+    "*://*.amazon.sa/*",
+    "*://*.amazon.eg/*",
+    "*://*.amazon.co.th/*"
+  ],
+  "background": {
+    "service_worker": "background/service-worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.amazon.com/s*",
+        "*://*.amazon.co.uk/s*",
+        "*://*.amazon.de/s*",
+        "*://*.amazon.fr/s*",
+        "*://*.amazon.it/s*",
+        "*://*.amazon.es/s*",
+        "*://*.amazon.co.jp/s*",
+        "*://*.amazon.ca/s*",
+        "*://*.amazon.com.mx/s*",
+        "*://*.amazon.com.au/s*",
+        "*://*.amazon.in/s*",
+        "*://*.amazon.com.br/s*",
+        "*://*.amazon.nl/s*",
+        "*://*.amazon.se/s*",
+        "*://*.amazon.pl/s*",
+        "*://*.amazon.com.tr/s*",
+        "*://*.amazon.sg/s*",
+        "*://*.amazon.ae/s*",
+        "*://*.amazon.sa/s*",
+        "*://*.amazon.eg/s*",
+        "*://*.amazon.co.th/s*"
+      ],
+      "js": ["content/search-extractor.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Amazon 关键词排名查询器",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

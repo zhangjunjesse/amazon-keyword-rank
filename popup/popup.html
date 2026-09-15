@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amazon 关键词排名查询器</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span class="logo">A</span>
+      <div>
+        <h1>Amazon 关键词排名查询器</h1>
+        <div id="statusLine" class="status">就绪</div>
+      </div>
+    </div>
+    <span id="siteTag" class="site-tag" title="当前站点将作为查询市场">—</span>
+  </header>
+
+  <section class="inputs">
+    <div class="field">
+      <label for="keywords">关键词 <span class="hint">（每行一个）</span></label>
+      <textarea id="keywords" rows="4" placeholder="例如：wireless earbuds&#10;bluetooth headphones&#10;noise cancelling"></textarea>
+    </div>
+    <div class="field">
+      <label for="asins">ASIN <span class="hint">（每行一个，10 位字母数字）</span></label>
+      <textarea id="asins" rows="4" placeholder="例如：B0C1234567&#10;B09ABCDEFG"></textarea>
+    </div>
+    <div class="options">
+      <div class="opt">
+        <label for="pages">扫描页数</label>
+        <select id="pages">
+          <option value="1" selected>第 1 页</option>
+          <option value="2">前 2 页</option>
+          <option value="3">前 3 页</option>
+        </select>
+      </div>
+      <div class="opt">
+        <label for="delay">关键词间隔（秒）</label>
+        <input id="delay" type="number" min="0" max="30" step="1" value="2" />
+        <span class="hint">太短易触发风控</span>
+      </div>
+    </div>
+    <div class="actions">
+      <button id="startBtn" class="primary">开始查询</button>
+      <button id="stopBtn" disabled>停止</button>
+    </div>
+  </section>
+
+  <section id="progressWrap" class="progress-wrap hidden">
+    <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+    <div id="progressText" class="progress-text"></div>
+  </section>
+
+  <section id="resultWrap" class="result-wrap hidden">
+    <div class="result-toolbar">
+      <div class="tabs">
+        <button data-tab="matrix" class="tab active">排名总表</button>
+        <button data-tab="detail" class="tab">明细</button>
+      </div>
+      <div class="rank-mode">
+        <label><input type="radio" name="rankMode" value="natural" checked /> 自然排名</label>
+        <label><input type="radio" name="rankMode" value="total" /> 总排名</label>
+      </div>
+      <div class="export">
+        <button id="exportXlsx" disabled>导出 Excel</button>
+        <button id="exportCsv" disabled>导出 CSV</button>
+      </div>
+    </div>
+    <div id="matrixView" class="view"></div>
+    <div id="detailView" class="view hidden"></div>
+    <div id="errorList" class="error-list"></div>
+  </section>
+
+  <footer>
+    <span id="footerInfo"></span>
+    <span class="tip">提示：查询时插件会在后台标签页打开亚马逊搜索页，关键词之间自动留间隔，请保持亚马逊标签页打开。</span>
+  </footer>
+
+  <script src="../vendor/xlsx.full.min.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
