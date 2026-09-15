@@ -14,12 +14,12 @@
     zh: {
       price: '¥49（一次性）',
       note: '国内用户 · 微信/支付宝付款，自动发码',
-      url: 'https://mianbaoduo.com/ （建好商品后替换此链接）',
+      url: 'https://mianbaoduo.com/ （面包多商品建好后替换此链接）',
     },
     intl: {
-      price: '$19.9（一次性）',
+      price: '$19.99（一次性）',
       note: '国际用户 · 信用卡付款，自动发码',
-      url: 'https://lemonsqueezy.com/ （建好商品后替换此链接）',
+      url: 'https://amazonkeywordranktools.lemonsqueezy.com/checkout/buy/588cfe46-9396-42d8-b492-03e89efff47f',
     },
   };
   const isZh = /^zh/i.test((navigator.language || '').replace('_', '-'));
