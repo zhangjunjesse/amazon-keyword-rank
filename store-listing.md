@@ -77,8 +77,9 @@ This extension's single purpose is to let Amazon sellers check where their produ
 | 截图 5 | 1280×800 | `screenshots/05-export-excel.png` |
 | 小图标 16 | `icons/icon16.png` | 已就绪 |
 | 图标 128 | `icons/icon128.png` | 已就绪 |
-| 小宣传图 440×280（可选） | 用 icon128 白底放大即可 | 未做 |
-| 大宣传图 1400×560（可选） | 未做 | — |
+| 小宣传图 440×280（可选） | `store-promo/cws-small-440x280.png` | 已就绪 |
+| 大宣传图 1400×560（可选） | `store-promo/cws-marquee-1400x560.png` | 已就绪 |
+| 淘宝商品主图 800×800（另用） | `demo/taobao-main-800x800.png` | 已就绪 |
 
 **Privacy policy URL**（必填，二选一）：
 - GitHub Pages（推荐，页面即本仓库 `privacy-policy.html`）：发布后填 `https://zhangjunjesse.github.io/amazon-keyword-rank/privacy-policy.html`

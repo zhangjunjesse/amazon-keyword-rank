@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>Chrome 商店大宣传图 1400x560</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 700px; height: 280px; /* 2x deviceScaleFactor 渲染 => 输出 1400x560 */
+    overflow: hidden;
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+  }
+  .stage {
+    position: relative;
+    width: 700px; height: 280px;
+    display: flex; align-items: center;
+    background:
+      radial-gradient(circle at 88% 12%, rgba(255,153,0,.20), transparent 45%),
+      radial-gradient(circle at 8% 100%, rgba(26,156,91,.12), transparent 42%),
+      linear-gradient(160deg, #fffaf3 0%, #fff7ec 46%, #fff2e0 100%);
+    overflow: hidden;
+  }
+
+  /* 左侧文案区：所有尺寸都按「280px 高度内一定放得下」预算过，不依赖裁切 */
+  .left {
+    flex: 0 0 auto;
+    padding-left: 36px;
+    width: 372px;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 9px;
+    margin-bottom: 13px;
+  }
+  .logo {
+    width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+    background: linear-gradient(135deg, #ff9900, #ff7a00);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 10px rgba(255,122,0,.35);
+    font: 900 17px/1 Arial; color: #fff;
+  }
+  .brand-name {
+    font-size: 14px; font-weight: 800; color: #1f2329; line-height: 1.3;
+    white-space: nowrap;
+  }
+
+  h1 { font-size: 25px; font-weight: 800; color: #1f2329; line-height: 1.26; margin-bottom: 9px; }
+  h1 em { font-style: normal; color: #ff7a00; }
+
+  .sub {
+    font-size: 13px; color: #6b7280; font-weight: 500; line-height: 1.55;
+    margin-bottom: 15px; white-space: nowrap;
+  }
+
+  .feats { display: flex; flex-direction: column; gap: 8px; }
+  .feat {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 700; color: #4a3418; white-space: nowrap;
+  }
+  .feat .dot {
+    width: 6px; height: 6px; border-radius: 50%; background: #ff9900; flex-shrink: 0;
+  }
+
+  /* 右侧产品截图卡片 */
+  .right {
+    flex: 1 1 auto;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    height: 100%;
+    padding-right: 24px;
+  }
+  .mock {
+    width: 254px;
+    background: #fff;
+    border: 1px solid #eee0cc;
+    border-radius: 13px;
+    box-shadow: 0 18px 38px rgba(31,35,41,.16);
+    overflow: hidden;
+  }
+  .mock-bar {
+    background: linear-gradient(90deg, #ff9900, #ff7a00);
+    padding: 8px 12px;
+    font-size: 11px; color: #fff; font-weight: 800;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .mock table { width: 100%; border-collapse: collapse; }
+  .mock th, .mock td {
+    padding: 7px 8px; font-size: 10.5px; text-align: center;
+    border-bottom: 1px solid #f1f1f1;
+  }
+  .mock th {
+    background: #f7f8fa; color: #4a5160; font-weight: 700; font-size: 9px;
+  }
+  .mock td:first-child, .mock th:first-child {
+    text-align: left; font-family: Consolas, monospace; font-weight: 700; color: #1f2329;
+  }
+  .rank-ok { color: #1a9c5b; font-weight: 800; }
+  .rank-ad { color: #b45309; font-weight: 800; }
+  .ad-badge {
+    display: inline-block; font-size: 8px; background: #fde8d3; color: #b45309;
+    border-radius: 6px; padding: 0 4px; margin-left: 2px; vertical-align: 1px; font-weight: 700;
+  }
+  .mock-foot {
+    padding: 8px 12px; font-size: 9.5px; color: #8a919e; font-weight: 600;
+    border-top: 1px solid #f1f1f1; background: #fbfbfc;
+  }
+
+  /* 装饰性小徽章 */
+  .badge-float {
+    position: absolute; top: 20px; right: 34px;
+    background: #fff; border: 1px solid #eee0cc; border-radius: 18px;
+    padding: 5px 12px; font-size: 10.5px; font-weight: 800; color: #1a9c5b;
+    box-shadow: 0 5px 14px rgba(31,35,41,.12);
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="left">
+      <div class="brand">
+        <div class="logo">A</div>
+        <div class="brand-name">亚马逊关键词排名查询器</div>
+      </div>
+      <h1>批量查 <em>关键词 × ASIN</em><br>搜索排名</h1>
+      <div class="sub">粘贴关键词与 ASIN，一键查询排名</div>
+      <div class="feats">
+        <div class="feat"><span class="dot"></span>自动识别广告位 / 自然排名</div>
+        <div class="feat"><span class="dot"></span>覆盖 21 个亚马逊站点</div>
+        <div class="feat"><span class="dot"></span>一键导出 Excel / CSV</div>
+      </div>
+    </div>
+    <div class="right">
+      <div class="badge-float">✓ 一键导出 Excel</div>
+      <div class="mock">
+        <div class="mock-bar"><span>排名总表</span><span>自然排名</span></div>
+        <table>
+          <thead>
+            <tr><th>ASIN</th><th>wireless earbuds</th><th>bluetooth headphones</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>B0C3D2E1F0</td><td class="rank-ok">3</td><td class="rank-ok">5</td></tr>
+            <tr><td>B0A1B2C3D4</td><td class="rank-ad">2<span class="ad-badge">广告</span></td><td class="rank-ok">1</td></tr>
+            <tr><td>B09XYZ12AB</td><td class="rank-ok">18</td><td class="rank-ad">4<span class="ad-badge">广告</span></td></tr>
+          </tbody>
+        </table>
+        <div class="mock-foot">3 个关键词 · 3 个 ASIN · 查询完成</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
