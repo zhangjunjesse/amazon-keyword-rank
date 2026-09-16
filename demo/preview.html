@@ -82,8 +82,9 @@
     border: 1px solid #e2e5ea; border-radius: 8px;
     font: 12px/1.45 Consolas, "Courier New", monospace; background: #fff;
   }
-  .options { display: flex; gap: 16px; align-items: flex-end; }
+  .options { display: flex; gap: 16px; align-items: flex-start; }
   .opt { display: flex; flex-direction: column; gap: 3px; }
+  .opt .hint { display: block; margin-top: 2px; font-size: 10px; color: #b3bac4; }
   .opt label { font-size: 12px; color: #8a919e; }
   .opt input, .opt select {
     padding: 5px 8px; border: 1px solid #e2e5ea; border-radius: 6px; font-size: 12px; background: #fff;
@@ -192,7 +193,7 @@ B09XYZ12AB</textarea>
     </div>
     <div class="options">
       <div class="opt"><label>扫描页数</label><select><option selected>第 1 页</option><option>前 2 页</option><option>前 3 页</option></select></div>
-      <div class="opt"><label>关键词间隔（秒）</label><input type="number" value="2" style="width:70px"></div>
+      <div class="opt"><label>关键词间隔（秒）</label><input type="number" value="2" style="width:70px"><span class="hint">太短易触发风控</span></div>
     </div>
     <div class="actions">
       <button class="primary" id="btnStart">开始查询</button>
