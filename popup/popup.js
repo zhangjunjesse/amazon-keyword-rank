@@ -8,17 +8,16 @@
 
 (() => {
   // ---------- 付费配置（建好商品后把链接填到 url） ----------
+  // 价格不在扩展里写死：以商品页实际标价为准（避免价格改了这里忘记同步）。
   // zh：国内渠道（淘宝虚拟商品自动发货，微信/支付宝收款，付款自动发卡密）
   // intl：国际渠道（海外平台，付款后自动发激活码）
   const PAYMENT = {
     zh: {
-      price: '¥49（一次性）',
-      note: '国内用户 · 淘宝自动发货（微信/支付宝）',
+      note: '国内用户 · 淘宝自动发货（微信/支付宝）· 一次性买断',
       url: 'https://item.taobao.com/item.htm?ft=t&id=1083171934216',
     },
     intl: {
-      price: '$19.99（一次性）',
-      note: '国际用户 · 信用卡付款，自动发码',
+      note: '国际用户 · 信用卡付款，自动发码 · 一次性买断',
       url: 'https://amazonkeywordranktools.lemonsqueezy.com/checkout/buy/588cfe46-9396-42d8-b492-03e89efff47f',
     },
   };
@@ -135,7 +134,7 @@
       el.proInfo.textContent = '已解锁全部功能（无限关键词 / 多页扫描 / 导出）。';
     } else {
       const pay = isZh ? PAYMENT.zh : PAYMENT.intl;
-      el.proPrice.textContent = pay.price + ' · ' + pay.note;
+      el.proPrice.textContent = pay.note; // 价格不展示，以商品页标价为准
       // 链接还是占位符（含"替换此链接"标记）时禁用购买按钮，避免跳到无效地址
       if (pay.url.includes('替换此链接')) {
         el.proBuy.classList.add('pro-buy-disabled');

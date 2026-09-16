@@ -112,7 +112,7 @@ textarea:focus { outline: 2px solid #ffd899; border-color: var(--primary); }
 }
 .pro-benefits { font-size: 12px; color: #8a919e; margin: 5px 0 8px; }
 .pro-price-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-.pro-price { font-size: 15px; font-weight: 700; color: #d97706; }
+.pro-price { font-size: 11px; font-weight: 500; color: #8a919e; }
 .pro-buy-btn {
   display: inline-block; padding: 5px 14px; border-radius: 6px;
   background: linear-gradient(135deg, #ff9900, #ff7a00); color: #fff;
