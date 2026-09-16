@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>商品主图 800x800</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 400px; height: 400px; /* 以 2x deviceScaleFactor 渲染 => 输出 800x800 */
+    overflow: hidden;
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+  }
+  .stage {
+    position: relative;
+    width: 400px; height: 400px;
+    display: flex; flex-direction: column; /* footer-bar 是最后一个 flex 子项、自然贴底，
+      而不是绝对定位盖在最下面——避免内容一多就被 footer 盖住看不见 */
+    background:
+      radial-gradient(circle at 82% 8%, rgba(255,153,0,.16), transparent 42%),
+      radial-gradient(circle at 6% 96%, rgba(26,156,91,.10), transparent 40%),
+      linear-gradient(160deg, #fffaf3 0%, #fff7ec 46%, #fff2e0 100%);
+    overflow: hidden;
+  }
+
+  /* 内容整体作为一个 flex 子项，上下 margin:auto 在 footer-bar 上方的空间里居中，
+     避免内容全堆在顶部、footer 前面留一大块空白 */
+  .content {
+    display: flex; flex-direction: column;
+    margin-top: auto; margin-bottom: auto;
+  }
+
+  /* 角标：拍下自动发货 */
+  .ribbon {
+    position: absolute; top: 14px; left: -34px;
+    width: 150px; text-align: center;
+    transform: rotate(-45deg);
+    background: linear-gradient(135deg, #ff5d5d, #e23b3b);
+    color: #fff; font-size: 11px; font-weight: 700;
+    padding: 4px 0; letter-spacing: .5px;
+    box-shadow: 0 2px 6px rgba(226,59,59,.35);
+    z-index: 5;
+  }
+
+  .top {
+    position: relative;
+    padding: 16px 22px 0;
+    display: flex; align-items: center; gap: 9px;
+    flex: 0 0 auto;
+  }
+  .logo {
+    width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
+    background: linear-gradient(135deg, #ff9900, #ff7a00);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 8px rgba(255,122,0,.35);
+  }
+  .logo svg { width: 18px; height: 18px; }
+  .brand-text { display: flex; align-items: baseline; gap: 7px; flex-wrap: wrap; }
+  .brand-text h1 {
+    font-size: 14.5px; font-weight: 800; color: #1f2329; line-height: 1.2;
+  }
+  .brand-text .sub {
+    font-size: 10.5px; color: #b45309; font-weight: 700;
+  }
+
+  .headline {
+    padding: 10px 26px 0;
+    text-align: center;
+    flex: 0 0 auto;
+  }
+  .headline h2 {
+    font-size: 19px; font-weight: 800; color: #1f2329; line-height: 1.28;
+  }
+  .headline h2 em {
+    font-style: normal; color: #ff7a00;
+  }
+  .headline p {
+    margin-top: 5px; font-size: 11px; color: #6b7280; font-weight: 500;
+  }
+
+  /* 中间产品截图卡片 */
+  .mock {
+    margin: 12px 30px 0;
+    background: #fff;
+    border: 1px solid #eee0cc;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(31,35,41,.09);
+    overflow: hidden;
+    flex: 0 0 auto;
+  }
+  .mock-bar {
+    background: #fbf4e8; padding: 5px 10px;
+    font-size: 9px; color: #a17a2f; font-weight: 700;
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 1px solid #eee0cc;
+  }
+  .mock table { width: 100%; border-collapse: collapse; }
+  .mock th, .mock td {
+    padding: 5px 7px; font-size: 10px; text-align: center;
+    border-bottom: 1px solid #f1f1f1;
+  }
+  .mock th {
+    background: #f7f8fa; color: #4a5160; font-weight: 700; font-size: 8.5px;
+  }
+  .mock td:first-child, .mock th:first-child {
+    text-align: left; font-family: Consolas, monospace; font-weight: 700; color: #1f2329;
+  }
+  .rank-ok { color: #1a9c5b; font-weight: 800; }
+  .rank-ad { color: #b45309; font-weight: 800; }
+  .ad-badge {
+    display: inline-block; font-size: 7.5px; background: #fde8d3; color: #b45309;
+    border-radius: 6px; padding: 0 4px; margin-left: 3px; vertical-align: 1px; font-weight: 700;
+  }
+
+  /* 底部功能点 */
+  .feats {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    padding: 11px 24px 0; justify-content: center;
+    flex: 0 0 auto;
+  }
+  .feat {
+    display: flex; align-items: center; gap: 4px;
+    background: #fff; border: 1px solid #f0e2c8;
+    border-radius: 18px; padding: 4px 10px;
+    font-size: 9.5px; font-weight: 700; color: #4a3418;
+    box-shadow: 0 1px 3px rgba(31,35,41,.05);
+  }
+  .feat .dot {
+    width: 5px; height: 5px; border-radius: 50%; background: #ff9900; flex-shrink: 0;
+  }
+
+  .footer-bar {
+    flex: 0 0 auto;
+    background: linear-gradient(90deg, #ff9900, #ff7a00);
+    color: #fff; text-align: center;
+    padding: 9px 10px;
+    font-size: 12px; font-weight: 800; letter-spacing: .5px;
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="ribbon">拍下自动发货</div>
+
+    <div class="content">
+    <div class="top">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <text x="4" y="18" font-size="16" font-weight="900" fill="#fff" font-family="Arial">A</text>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>亚马逊关键词排名查询器</h1>
+        <div class="sub">Pro 版激活码</div>
+      </div>
+    </div>
+
+    <div class="headline">
+      <h2>批量查 <em>关键词 × ASIN</em><br>排名，一目了然</h2>
+      <p>解锁无限次查询 · 一次买断 · 永久使用</p>
+    </div>
+
+    <div class="mock">
+      <div class="mock-bar"><span>排名总表</span><span>自然排名</span></div>
+      <table>
+        <thead>
+          <tr><th>ASIN</th><th>wireless earbuds</th><th>bluetooth headphones</th><th>noise cancelling</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>B0C3D2E1F0</td><td class="rank-ok">3</td><td class="rank-ok">5</td><td class="rank-ok">2</td></tr>
+          <tr><td>B0A1B2C3D4</td><td class="rank-ad">2<span class="ad-badge">广告</span></td><td class="rank-ok">1</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="feats">
+      <div class="feat"><span class="dot"></span>关键词×ASIN 批量查询</div>
+      <div class="feat"><span class="dot"></span>自动识别广告位</div>
+      <div class="feat"><span class="dot"></span>一键导出 Excel</div>
+      <div class="feat"><span class="dot"></span>覆盖 21 个亚马逊站点</div>
+    </div>
+    </div><!-- /.content -->
+
+    <div class="footer-bar">
+      Pro 激活码 · 拍下秒发 · 永久使用
+    </div>
+  </div>
+</body>
+</html>
