@@ -14,7 +14,7 @@
     zh: {
       price: '¥49（一次性）',
       note: '国内用户 · 淘宝自动发货（微信/支付宝）',
-      url: 'https://item.taobao.com/ （淘宝商品发布后替换此链接）',
+      url: 'https://item.taobao.com/item.htm?ft=t&id=1083171934216',
     },
     intl: {
       price: '$19.99（一次性）',
