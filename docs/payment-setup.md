@@ -96,7 +96,7 @@ node keygen.mjs issue --private "C:\Users\Administrator\Desktop\dsh-workspace\sp
 - 自有卡密：一个码激活一次即绑定本机（存本地），换设备需重新激活（v1 不做多设备限制，够用）
 
 **免费版限制是多少？**
-≤3 关键词 / ≤10 ASIN / 仅第 1 页。Pro 解锁：无限关键词、最多 3 页、全部功能。
+免费版功能不受限（关键词/ASIN 数量、扫描页数都不限），但**总共只能查询 3 次**（`FREE_TRIAL_LIMIT`，定义在 `background/service-worker.js`），用完后开始查询会被拒绝并提示激活 Pro。Pro 解锁：不限次数。
 
 ## 5. 上线检查清单
 

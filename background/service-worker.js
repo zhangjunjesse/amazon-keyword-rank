@@ -29,8 +29,32 @@ const PRO_PUBLIC_KEY = '2E69IAsrGBuk2WIkcPU8Dg1aorn87QBhCuLr-mJC8ms';
 const OWN_KEY_RE = /^ARTK-([A-Za-z0-9_-]{12})-([A-Za-z0-9_-]{86})$/;
 const PRODUCT_PRO = 0x01;
 
-// 免费版限制（Pro 解除）
-const FREE_LIMITS = { keywords: 3, asins: 10, pages: 1 };
+// 免费版：全功能试用 FREE_TRIAL_LIMIT 次（不限关键词/ASIN/页数），用完需激活 Pro 才能继续查询
+const FREE_TRIAL_LIMIT = 3;
+const TRIAL_KEY = 'freeTrialUsed';
+
+/** 读取免费试用已用次数（本地持久化，跨重启保留）。 */
+async function getTrialUsage() {
+  try {
+    const r = await chrome.storage.local.get(TRIAL_KEY);
+    const used = Math.max(0, parseInt(r[TRIAL_KEY], 10) || 0);
+    return { used, limit: FREE_TRIAL_LIMIT, remaining: Math.max(0, FREE_TRIAL_LIMIT - used) };
+  } catch (e) {
+    return { used: 0, limit: FREE_TRIAL_LIMIT, remaining: FREE_TRIAL_LIMIT };
+  }
+}
+
+/** 消耗一次试用次数（仅在确认真的要开始查询时调用）。 */
+async function consumeTrial() {
+  const cur = await getTrialUsage();
+  const used = cur.used + 1;
+  try {
+    await chrome.storage.local.set({ [TRIAL_KEY]: used });
+  } catch (e) {
+    /* ignore */
+  }
+  return { used, limit: FREE_TRIAL_LIMIT, remaining: Math.max(0, FREE_TRIAL_LIMIT - used) };
+}
 
 function b64urlToBytes(s) {
   let b = s.replace(/-/g, '+').replace(/_/g, '/');
@@ -47,13 +71,14 @@ async function sha256Short(s) {
 }
 
 async function getProState() {
+  const trial = await getTrialUsage();
   try {
     const r = await chrome.storage.local.get('proActivation');
     return r.proActivation
-      ? { pro: true, activation: r.proActivation }
-      : { pro: false, activation: null };
+      ? { pro: true, activation: r.proActivation, trial }
+      : { pro: false, activation: null, trial };
   } catch (e) {
-    return { pro: false, activation: null };
+    return { pro: false, activation: null, trial };
   }
 }
 
@@ -513,27 +538,19 @@ async function handleStart(msg) {
   if (!asins.length) return { ok: false, error: '没有有效 ASIN（需为 10 位字母数字，每行一个）' };
   if (runningPromise) return { ok: false, error: '已有任务在运行，请先停止或等待完成' };
 
-  // 免费/Pro 分层：免费版限制关键词数、ASIN 数、页数
+  // 免费/Pro 分层：免费版全功能可用，但总共只有 FREE_TRIAL_LIMIT 次查询机会；Pro 不限次数
   const proState = await getProState();
   const isPro = proState.pro;
-  let finalKeywords = keywords;
-  let finalAsins = asins;
-  let effectivePages = clampInt(msg.pages, 1, 5, 1);
-  const truncated = {};
-  if (!isPro) {
-    if (keywords.length > FREE_LIMITS.keywords) {
-      finalKeywords = keywords.slice(0, FREE_LIMITS.keywords);
-      truncated.keywords = keywords.length;
-    }
-    if (asins.length > FREE_LIMITS.asins) {
-      finalAsins = asins.slice(0, FREE_LIMITS.asins);
-      truncated.asins = asins.length;
-    }
-    if (effectivePages > 1) {
-      effectivePages = FREE_LIMITS.pages;
-      truncated.pages = true;
-    }
+  if (!isPro && proState.trial.remaining <= 0) {
+    return {
+      ok: false,
+      error: `免费试用次数已用完（${proState.trial.used}/${proState.trial.limit}），请激活 Pro 解锁无限次查询`,
+      trialExhausted: true,
+      trial: proState.trial,
+    };
   }
+
+  const effectivePages = clampInt(msg.pages, 1, 5, 1);
 
   // 从当前活动标签页推断市场站点
   let tab, u;
@@ -548,27 +565,26 @@ async function handleStart(msg) {
     return { ok: false, error: '请先在亚马逊站点（如 www.amazon.com / .de / .co.jp）打开一个页面，再点击“开始查询”' };
   }
 
+  // 校验全部通过、确认真的要开始跑了，才消耗一次免费试用次数（Pro 不消耗）
+  let trial = null;
+  if (!isPro) trial = await consumeTrial();
+
   job = {
     id: Date.now().toString(36) + Math.random().toString(36).slice(2, 8),
     status: 'idle',
     baseUrl: u.origin,
-    keywords: finalKeywords,
-    asins: finalAsins,
+    keywords,
+    asins,
     pages: effectivePages,
     delayMs: clampInt(msg.delayMs, 0, 30, 2) * 1000,
     results: {},
     errors: {},
-    progress: { done: 0, total: finalKeywords.length, currentKeyword: null, currentKeywordIndex: 0, currentPage: 0 },
+    progress: { done: 0, total: keywords.length, currentKeyword: null, currentKeywordIndex: 0, currentPage: 0 },
     finishedAt: null,
   };
   await persist();
   runJob(); // 不 await，后台跑
-  return {
-    ok: true,
-    pro: isPro,
-    truncated: Object.keys(truncated).length ? truncated : null,
-    limits: FREE_LIMITS,
-  };
+  return { ok: true, pro: isPro, trial };
 }
 
 function cleanList(arr) {

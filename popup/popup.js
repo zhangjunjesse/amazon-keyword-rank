@@ -46,6 +46,7 @@
     footerInfo: $('footerInfo'),
     proLocked: $('proLocked'),
     proUnlocked: $('proUnlocked'),
+    proTag: $('proTag'),
     proPrice: $('proPrice'),
     proBuy: $('proBuy'),
     proKey: $('proKey'),
@@ -91,17 +92,19 @@
         if (/amazon\./.test(u.hostname)) {
           el.siteTag.textContent = u.hostname;
           el.siteTag.title = `将以 ${u.hostname} 作为查询市场`;
+          el.siteTag.className = 'site-tag site-ok';
         } else {
           el.siteTag.textContent = '⚠ 非亚马逊页';
           el.siteTag.title = '请在亚马逊页面打开本插件后再开始查询';
+          el.siteTag.className = 'site-tag site-warn';
         }
       }
     } catch (e) { /* ignore */ }
 
-    // Pro 状态
+    // Pro 状态（含免费试用剩余次数）
     try {
       const ps = await chrome.runtime.sendMessage({ type: 'getProState' });
-      renderProPanel(ps && ps.pro);
+      renderProPanel(ps);
     } catch (e) { /* ignore */ }
 
     // 恢复上次任务状态 / 结果
@@ -126,12 +129,14 @@
   }
 
   // ---------- Pro 面板 ----------
-  function renderProPanel(pro) {
-    isPro = !!pro;
+  function renderProPanel(state) {
+    const pro = !!(state && state.pro);
+    const trial = (state && state.trial) || null;
+    isPro = pro;
     el.proLocked.classList.toggle('hidden', isPro);
     el.proUnlocked.classList.toggle('hidden', !isPro);
     if (isPro) {
-      el.proInfo.textContent = '已解锁全部功能（无限关键词 / 多页扫描 / 导出）。';
+      el.proInfo.textContent = '已解锁全部功能：无限次查询、无限关键词、全部导出功能。';
     } else {
       const pay = isZh ? PAYMENT.zh : PAYMENT.intl;
       el.proPrice.textContent = pay.note; // 价格不展示，以商品页标价为准
@@ -145,9 +150,34 @@
         el.proBuy.href = pay.url;
         el.proBuy.title = pay.url;
       }
+      renderTrialTag(trial);
     }
     el.proMsg.textContent = '';
     el.proMsg.className = 'pro-msg';
+  }
+
+  /** 更新"免费剩余 x/3 次"角标（用完变红，只剩 1 次变橙提醒）。 */
+  function renderTrialTag(trial) {
+    if (!trial) {
+      el.proTag.textContent = '免费试用';
+      el.proTag.className = 'pro-tag';
+      return;
+    }
+    const { used, limit, remaining } = trial;
+    if (remaining <= 0) {
+      el.proTag.textContent = `试用已用完 ${used}/${limit}`;
+      el.proTag.className = 'pro-tag pro-tag-danger';
+    } else {
+      el.proTag.textContent = `免费剩余 ${remaining}/${limit} 次`;
+      el.proTag.className = 'pro-tag' + (remaining === 1 ? ' pro-tag-warn' : '');
+    }
+  }
+
+  /** 免费次数用完时，把视线引到 Pro 面板上。 */
+  function flashProPanel() {
+    el.proLocked.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    el.proLocked.classList.add('pro-flash');
+    setTimeout(() => el.proLocked.classList.remove('pro-flash'), 1300);
   }
 
   el.proActivate.addEventListener('click', async () => {
@@ -159,7 +189,7 @@
       const res = await chrome.runtime.sendMessage({ type: 'activateKey', key });
       if (res && res.ok) {
         showProMsg(res.msg || 'Pro 已激活', true);
-        renderProPanel(true);
+        renderProPanel({ pro: true });
       } else {
         showProMsg((res && res.error) || '激活失败', false);
       }
@@ -171,7 +201,12 @@
 
   el.proDeactivate.addEventListener('click', async () => {
     try { await chrome.runtime.sendMessage({ type: 'deactivatePro' }); } catch (e) { /* ignore */ }
-    renderProPanel(false);
+    try {
+      const ps = await chrome.runtime.sendMessage({ type: 'getProState' });
+      renderProPanel(ps);
+    } catch (e) {
+      renderProPanel({ pro: false });
+    }
     showProMsg('已解除绑定', null);
   });
 
@@ -223,18 +258,15 @@
       if (!res.ok) {
         setStatus(res.error || '启动失败', 'error');
         el.progressWrap.classList.add('hidden');
+        // 免费试用次数用完：更新角标并把视线引到 Pro 面板
+        if (res.trialExhausted) {
+          renderTrialTag(res.trial);
+          flashProPanel();
+        }
         return;
       }
       if (res.pro !== undefined) isPro = res.pro;
-      // 免费版被裁剪时提示
-      if (!isPro && res.truncated) {
-        const t = res.truncated;
-        const parts = [];
-        if (t.keywords) parts.push(`关键词 ${t.keywords} → 3`);
-        if (t.asins) parts.push(`ASIN ${t.asins} → 10`);
-        if (t.pages) parts.push('页数 → 第 1 页');
-        setStatus(`免费版已裁剪（${parts.join('，')}），解锁 Pro 可解除限制`, 'error');
-      }
+      if (!isPro && res.trial) renderTrialTag(res.trial); // 同步刚消耗掉的这次试用次数
       setRunning(true);
       setStatus(`查询中 0/${totalCount}`, 'running');
     } catch (e) {
